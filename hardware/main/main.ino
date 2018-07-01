@@ -5,14 +5,14 @@
 #define MV_PER_LSB 3600.0F/1024.0 // 10-bit ADC with 3.6V input range
 #define ABSZERO 273.15
 #define MAXANALOGREAD 1023.0
-#define T0 25+ABSZERO // Nenntemperatur des NTC-Widerstands in °C
-#define R0 1000000 // Nennwiderstand des NTC-Sensors in Ohm
-#define B 4608  // Materialkonstante B
-#define RV 68000 // Vorwiderstand in Ohm
+#define T0 25+ABSZERO // nominal temperatur NTC-Sensor in °C
+#define R0 1000000 // nominal resistance NTC-Sensor in Ohm
+#define B 4608  // material constant B
+#define RV 68000 // series resistor in Ohm
 
 float tempNTCB(int adcvalue) {
   float VA_VB = adcvalue/MAXANALOGREAD;
-  float RN=RV*VA_VB / (1-VA_VB); // aktueller Widerstand des NTC
+  float RN=RV*VA_VB / (1-VA_VB); // current ressistance NTC
   return T0 * B / (B + T0 * log(RN / R0))-ABSZERO;
 }
 
