@@ -20,6 +20,6 @@ Let's write an awesome PWA with web bluetooth
 ### Web Bluetooth API
 
 * [inspiration](https://www.youtube.com/watch?v=_4nrh6mTt4E&feature=youtu.be&t=8h19m47s)
-* bluetooth terminal [app](https://github.com/1oginov/Web-Bluetooth-Terminal) [library](https://github.com/1oginov/bluetooth-terminal)
-* samples [page](https://googlechrome.github.io/samples/web-bluetooth/) [source](https://github.com/GoogleChrome/samples/tree/gh-pages/web-bluetooth)
+* bluetooth terminal ([app](https://github.com/1oginov/Web-Bluetooth-Terminal), [library](https://github.com/1oginov/bluetooth-terminal))
+* [samples](https://googlechrome.github.io/samples/web-bluetooth/) ([source](https://github.com/GoogleChrome/samples/tree/gh-pages/web-bluetooth))
 * [gatt](http://www.novelbits.io/bluetooth-gatt-services-characteristics/)
