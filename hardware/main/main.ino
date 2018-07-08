@@ -27,13 +27,11 @@ void printADC(char *name, int input) {
   Serial.print(name);
   Serial.print(": ");
   Serial.print(adcvalue);
-  Serial.print(" [");
-  Serial.print((float)adcvalue * MV_PER_LSB);
-  Serial.print(" mV, ");
-  Serial.print(RV*adcvalue/MAXANALOGREAD / (1-adcvalue/MAXANALOGREAD));
-  Serial.print(" Ohm] ");
+  Serial.print(" -> ");
+  Serial.print((RV*adcvalue/MAXANALOGREAD / (1-adcvalue/MAXANALOGREAD)) / 1000);
+  Serial.print(" kOhm -> ");
   Serial.print(tempNTCB(adcvalue) - ABSZERO);
-  Serial.print("°C");
+  Serial.print(" °C");
 }
 
 void setup() {
@@ -42,7 +40,7 @@ void setup() {
 
 void loop() {
   printADC("A0", A0);
-  Serial.print("    ");
+  Serial.print("  |  ");
   printADC("A1", A1);
   Serial.println();
 
