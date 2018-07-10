@@ -1,1 +1,4 @@
 stuff
+*.[b|s]#*
+*.job
+*.pro
