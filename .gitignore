@@ -2,3 +2,6 @@ stuff
 *.[b|s]#*
 *.job
 *.pro
+build
+.vscode
+frontend/node_modules

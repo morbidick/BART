@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+	<title>BarT</title>
+
+	<script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+
+	<script>
+		const serviceUuid = 0x181A;
+
+		async function demo() {
+			try {
+				console.log('Requesting Bluetooth Device...');
+				const device = await navigator.bluetooth.requestDevice({
+					//filters: [{services: [serviceUuid]}],
+					acceptAllDevices: true,
+				});
+
+				console.log('Connecting to GATT Server...');
+				const server = await device.gatt.connect();
+
+				console.log('Getting Service...');
+				const service = await server.getPrimaryService(serviceUuid);
+
+				console.log('Getting Characteristics...');
+				characteristics = await service.getCharacteristics();
+
+				console.log('> Characteristics: ' +  characteristics.map(c => c.uuid).join('\n' + ' '.repeat(19)));
+			} catch(error) {
+				console.log('Argh! ' + error);
+			}
+		}
+	</script>
+</head>
+<body>
+	<button onclick="demo()">Launch</button>
+</body>
+</html>
