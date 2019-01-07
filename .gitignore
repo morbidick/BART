@@ -5,3 +5,4 @@ stuff
 build
 .vscode
 frontend/node_modules
+vscode.code-workspace
