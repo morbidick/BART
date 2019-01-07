@@ -14,7 +14,7 @@
 #define UUID16_CHR_TEMPERATURE_MEASUREMENT_TIP 0x2A6E // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature.xml
 #define UUID16_CHR_TEMPERATURE_MEASUREMENT_HANDLE 0x2A1F // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature_celsius.xml
 
-BLEService         envservice = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
+BLEService        envservice = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
 BLECharacteristic characteristic_temp0 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT_TIP);
 BLECharacteristic characteristic_temp1 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT_HANDLE);
 
@@ -73,15 +73,9 @@ void setupBLE() {
   envservice.begin();
 	characteristic_temp0.setProperties(CHR_PROPS_READ | CHR_PROPS_NOTIFY);
 	characteristic_temp0.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
-	characteristic_temp0.setFixedLen(4); // set the length to 4byte = 32bit integer
+	characteristic_temp0.setFixedLen(4); // 4byte or one int
 	characteristic_temp0.begin();
 	characteristic_temp0.notify32(0);
-
-  characteristic_temp1.setProperties(CHR_PROPS_READ | CHR_PROPS_NOTIFY);
-  characteristic_temp1.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
-  characteristic_temp1.setFixedLen(4); // set the length to 4byte = 32bit integer
-  characteristic_temp1.begin();
-  characteristic_temp1.notify32(5);
 
   // Setup the advertising packet(s)
   Serial.println("Setting up the advertising payload(s)");

@@ -13,6 +13,11 @@
 		const serviceUuid = 0x181A;
 		const absZero = 273.15;
 
+		function dataViewToInt({ buffer }) {
+			let array = new Int32Array(buffer);
+			return array[0]/100 - absZero;
+		}
+
 		async function demo() {
 			try {
 				console.log('Requesting Bluetooth Device...');
@@ -30,14 +35,13 @@
 				characteristics = await service.getCharacteristics();
 
 				let c = characteristics[0];
-				let buffer = (await c.readValue()).buffer;
-				let array = new Int32Array(buffer);
-				let value = array[0]/100 - absZero;
-				console.log(c.uuid, "current temperature", value, c.properties);
+				console.log(c.uuid);
+
+				console.log("Current temperature: ", dataViewToInt(await c.readValue()));
 
 				await c.startNotifications();
 				c.addEventListener('characteristicvaluechanged',(e) => {
-					console.log("changed", e.target.value);
+					console.log("changed", dataViewToInt(e.target.value));
 				});
 
 			} catch(error) {
