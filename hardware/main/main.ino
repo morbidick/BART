@@ -29,34 +29,14 @@ void setupADC() {
   delay(1);
 }
 
-// calculates temperature in Kelvin for a given ADC value, 0 if not connected
+// calculates temperature in Kelvin for a given ADC value
 float tempNTCB(int adcvalue) {
-  // probe not connected so return 0
-  if (adcvalue == 0) {
-    return 0;
-  }
   float VA_VB = adcvalue/MAXANALOGREAD;
   float RN=RV*VA_VB / (1-VA_VB); // current ressistance NTC
   return T0 * B / (B + T0 * log(RN / R0));
 }
 
-// calculates the Voltage for a given ADC input
-float adcVoltage(int input) {
-  return input * MV_PER_LSB;
-}
-// calculates the series resistance for a given ADC input
-float adcSeriesResistance(int input) {
-  return (RV*input/MAXANALOGREAD / (1-input/MAXANALOGREAD)) / 1000;
-}
-
-char tempADC(int input) {
-	char buffer[6];
-  float temp = tempNTCB(analogRead(input)) - ABSZERO;
-	return snprintf(buffer, sizeof buffer, "%f", temp*100);
-}
-
-void connect_callback(uint16_t conn_handle)
-{
+void connect_callback(uint16_t conn_handle) {
   char central_name[32] = { 0 };
   Bluefruit.Gap.getPeerName(conn_handle, central_name, sizeof(central_name));
 
@@ -64,8 +44,7 @@ void connect_callback(uint16_t conn_handle)
   Serial.println(central_name);
 }
 
-void disconnect_callback(uint16_t conn_handle, uint8_t reason)
-{
+void disconnect_callback(uint16_t conn_handle, uint8_t reason) {
   (void) conn_handle;
   (void) reason;
 
@@ -95,7 +74,7 @@ void setupBLE() {
 	characteristic_temp0.setProperties(CHR_PROPS_READ ^ CHR_PROPS_NOTIFY);
 	characteristic_temp0.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
 	characteristic_temp0.begin();
-	characteristic_temp0.notify(0, 1);
+	characteristic_temp0.notify(0);
 
   // Setup the advertising packet(s)
   Serial.println("Setting up the advertising payload(s)");
@@ -127,21 +106,6 @@ void setupBLE() {
 	Serial.println("\nAdvertising");
 }
 
-void printADC(char *name, int input) {
-  int adcvalue = analogRead(input);
-
-  Serial.print(name);
-  Serial.print(": ");
-  Serial.print(adcvalue);
-  Serial.print(".a -> ");
-  Serial.print(adcVoltage(adcvalue));
-  Serial.print("mV -> ");
-  Serial.print(adcSeriesResistance(adcvalue));
-  Serial.print("kOhm -> ");
-  Serial.print(tempNTCB(adcvalue) - ABSZERO);
-  Serial.print(" °C");
-}
-
 void setup() {
   Serial.begin(BAUDRATE);
 
@@ -153,14 +117,16 @@ void loop() {
 	digitalToggle(LED_RED);
 
   if ( Bluefruit.connected() ) {
-		if (analogRead(A1) != 0) {
-			int temp = analogRead(A1);
-			characteristic_temp0.notify32(temp);
+		int probeValue = analogRead(A1);
+
+		if (probeValue != 0) {
+			int temp = tempNTCB(probeValue);
+			characteristic_temp0.notify32(temp*100);
 			Serial.print("BLE value updated to ");
-			Serial.print(temp);
+			Serial.print(temp - ABSZERO);
 			Serial.println("°C");
 		} else {
-			characteristic_temp0.notify(0,1);
+			characteristic_temp0.notify(0);
 			Serial.println("probe not connected");
 		}
 	}
