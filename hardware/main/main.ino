@@ -92,10 +92,10 @@ void setupBLE() {
   // BLEService and BLECharacteristic classes
   Serial.println("Configuring the Service");
   envservice.begin();
-	characteristic_temp0.setProperties(CHR_PROPS_READ);
+	characteristic_temp0.setProperties(CHR_PROPS_READ ^ CHR_PROPS_NOTIFY);
 	characteristic_temp0.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
 	characteristic_temp0.begin();
-	characteristic_temp0.write("0");
+	characteristic_temp0.notify(0, 1);
 
   // Setup the advertising packet(s)
   Serial.println("Setting up the advertising payload(s)");
@@ -153,14 +153,14 @@ void loop() {
 	digitalToggle(LED_RED);
 
   if ( Bluefruit.connected() ) {
-		if (analogRead(A0) != 0) {
-			char temp = tempADC(A0);
-			characteristic_temp0.write("huhu");
+		if (analogRead(A1) != 0) {
+			int temp = analogRead(A1);
+			characteristic_temp0.notify32(temp);
 			Serial.print("BLE value updated to ");
 			Serial.print(temp);
 			Serial.println("°C");
 		} else {
-			characteristic_temp0.write("0");
+			characteristic_temp0.notify(0,1);
 			Serial.println("probe not connected");
 		}
 	}

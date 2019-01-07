@@ -29,12 +29,18 @@
 				console.log('Getting Characteristics...');
 				characteristics = await service.getCharacteristics();
 
-				for (c of characteristics) {
-					console.log(c.uuid);
-					let value = await c.readValue();
-					let enc = new TextDecoder;
-					console.log(enc.decode(value));
-				}
+				let c = characteristics[0];
+				console.log(c.uuid);
+				let buffer = (await c.readValue()).buffer;
+				let array = new Int32Array(buffer);
+				let value = array[0];
+				console.log(buffer, array, value);
+
+				await c.startNotifications();
+				c.addEventListener('characteristicvaluechanged',(e) => {
+					console.log("changed", e.target.value);
+				});
+
 			} catch(error) {
 				console.log('Argh! ' + error);
 			}
