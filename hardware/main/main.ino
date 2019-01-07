@@ -11,12 +11,12 @@
 #define RV 68000 // series resistor in Ohm
 
 #define UUID16_SVC_ENVIRONMENTAL_SENSING    0x181A
-#define UUID16_CHR_TEMPERATURE_MEASUREMENT0 0x2A1E
-#define UUID16_CHR_TEMPERATURE_MEASUREMENT1 0x2A1F
+#define UUID16_CHR_TEMPERATURE_MEASUREMENT_TIP 0x2A6E // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature.xml
+#define UUID16_CHR_TEMPERATURE_MEASUREMENT_HANDLE 0x2A1F // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature_celsius.xml
 
-BLEService        envservice = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
-BLECharacteristic characteristic_temp0 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT0);
-BLECharacteristic characteristic_temp1 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT1);
+BLEService         envservice = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
+BLECharacteristic characteristic_temp0 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT_TIP);
+BLECharacteristic characteristic_temp1 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT_HANDLE);
 
 BLEDis bledis; // DIS (Device Information Service) helper class instance
 
@@ -71,10 +71,17 @@ void setupBLE() {
   // BLEService and BLECharacteristic classes
   Serial.println("Configuring the Service");
   envservice.begin();
-	characteristic_temp0.setProperties(CHR_PROPS_READ ^ CHR_PROPS_NOTIFY);
+	characteristic_temp0.setProperties(CHR_PROPS_READ | CHR_PROPS_NOTIFY);
 	characteristic_temp0.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
+	characteristic_temp0.setFixedLen(4); // set the length to 4byte = 32bit integer
 	characteristic_temp0.begin();
-	characteristic_temp0.notify(0);
+	characteristic_temp0.notify32(0);
+
+  characteristic_temp1.setProperties(CHR_PROPS_READ | CHR_PROPS_NOTIFY);
+  characteristic_temp1.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
+  characteristic_temp1.setFixedLen(4); // set the length to 4byte = 32bit integer
+  characteristic_temp1.begin();
+  characteristic_temp1.notify32(5);
 
   // Setup the advertising packet(s)
   Serial.println("Setting up the advertising payload(s)");
@@ -126,7 +133,7 @@ void loop() {
 			Serial.print(temp - ABSZERO);
 			Serial.println("°C");
 		} else {
-			characteristic_temp0.notify(0);
+			characteristic_temp0.notify32(0);
 			Serial.println("probe not connected");
 		}
 	}

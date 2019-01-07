@@ -18,7 +18,6 @@
 				console.log('Requesting Bluetooth Device...');
 				const device = await navigator.bluetooth.requestDevice({
 					filters: [{services: [serviceUuid]}],
-					//acceptAllDevices: true,
 				});
 
 				console.log('Connecting to GATT Server...');
@@ -31,11 +30,10 @@
 				characteristics = await service.getCharacteristics();
 
 				let c = characteristics[0];
-				console.log(c.uuid);
 				let buffer = (await c.readValue()).buffer;
 				let array = new Int32Array(buffer);
 				let value = array[0]/100 - absZero;
-				console.log("Current temperature: ", value);
+				console.log(c.uuid, "current temperature", value, c.properties);
 
 				await c.startNotifications();
 				c.addEventListener('characteristicvaluechanged',(e) => {
