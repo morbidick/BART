@@ -92,7 +92,7 @@ void setupBLE() {
   // BLEService and BLECharacteristic classes
   Serial.println("Configuring the Service");
   envservice.begin();
-	characteristic_temp0.setProperties(CHR_PROPS_INDICATE);
+	characteristic_temp0.setProperties(CHR_PROPS_READ);
 	characteristic_temp0.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
 	characteristic_temp0.begin();
 	characteristic_temp0.write("0");
@@ -153,9 +153,9 @@ void loop() {
 	digitalToggle(LED_RED);
 
   if ( Bluefruit.connected() ) {
-		if (analogRead(A0) == 0) {
+		if (analogRead(A0) != 0) {
 			char temp = tempADC(A0);
-			characteristic_temp0.write(&temp);
+			characteristic_temp0.write("huhu");
 			Serial.print("BLE value updated to ");
 			Serial.print(temp);
 			Serial.println("°C");

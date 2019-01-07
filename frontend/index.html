@@ -16,8 +16,8 @@
 			try {
 				console.log('Requesting Bluetooth Device...');
 				const device = await navigator.bluetooth.requestDevice({
-					//filters: [{services: [serviceUuid]}],
-					acceptAllDevices: true,
+					filters: [{services: [serviceUuid]}],
+					//acceptAllDevices: true,
 				});
 
 				console.log('Connecting to GATT Server...');
@@ -29,7 +29,12 @@
 				console.log('Getting Characteristics...');
 				characteristics = await service.getCharacteristics();
 
-				console.log('> Characteristics: ' +  characteristics.map(c => c.uuid).join('\n' + ' '.repeat(19)));
+				for (c of characteristics) {
+					console.log(c.uuid);
+					let value = await c.readValue();
+					let enc = new TextDecoder;
+					console.log(enc.decode(value));
+				}
 			} catch(error) {
 				console.log('Argh! ' + error);
 			}
