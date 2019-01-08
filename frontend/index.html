@@ -13,9 +13,11 @@
 		const serviceUuid = 0x181A;
 		const absZero = 273.15;
 
-		function dataViewToInt({ buffer }) {
-			let array = new Int32Array(buffer);
-			return array[0]/100 - absZero;
+		function dataViewToValues({ buffer }) {
+			let settings = new DataView(buffer, 0, 1);
+			let temp0 = new DataView(buffer, 1, 2).getInt16();
+			let temp1 = new DataView(buffer, 3, 2).getInt16();
+			return {settings, temp0, temp1};
 		}
 
 		async function demo() {
@@ -37,11 +39,11 @@
 				let c = characteristics[0];
 				console.log(c.uuid);
 
-				console.log("Current temperature: ", dataViewToInt(await c.readValue()));
+				console.log("Current temperature: ", dataViewToValues(await c.readValue()));
 
 				await c.startNotifications();
 				c.addEventListener('characteristicvaluechanged',(e) => {
-					console.log("changed", dataViewToInt(e.target.value));
+					console.log("changed", dataViewToValues(e.target.value));
 				});
 
 			} catch(error) {

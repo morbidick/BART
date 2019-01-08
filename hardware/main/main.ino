@@ -10,13 +10,14 @@
 #define B 4608  // material constant B
 #define RV 68000 // series resistor in Ohm
 
-#define UUID16_SVC_ENVIRONMENTAL_SENSING    0x181A
-#define UUID16_CHR_TEMPERATURE_MEASUREMENT_TIP 0x2A6E // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature.xml
-#define UUID16_CHR_TEMPERATURE_MEASUREMENT_HANDLE 0x2A1F // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature_celsius.xml
+#define UUID16_SVC_ENVIRONMENTAL_SENSING   0x181A
+#define UUID16_CHR_TEMPERATURE_MEASUREMENT 0x2A1F
 
-BLEService        envservice = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
-BLECharacteristic characteristic_temp0 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT_TIP);
-BLECharacteristic characteristic_temp1 = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT_HANDLE);
+#define CONNECTED    0x11
+#define DISCONNECTED 0x01
+
+BLEService        envService = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
+BLECharacteristic tempChar = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT);
 
 BLEDis bledis; // DIS (Device Information Service) helper class instance
 
@@ -29,11 +30,12 @@ void setupADC() {
   delay(1);
 }
 
-// calculates temperature in Kelvin for a given ADC value
+// calculates temperature in 1/10 Celsius for a given ADC value
 float tempNTCB(int adcvalue) {
   float VA_VB = adcvalue/MAXANALOGREAD;
-  float RN=RV*VA_VB / (1-VA_VB); // current ressistance NTC
-  return T0 * B / (B + T0 * log(RN / R0));
+  float RN = RV*VA_VB / (1-VA_VB); // current ressistance NTC
+  float kelvin = T0 * B / (B + T0 * log(RN / R0));
+  return (kelvin - ABSZERO)*10.00;
 }
 
 void connect_callback(uint16_t conn_handle) {
@@ -53,7 +55,7 @@ void disconnect_callback(uint16_t conn_handle, uint8_t reason) {
 }
 
 void setupBLE() {
-	// Initialise the Bluefruit module
+  // Initialise the Bluefruit module
   Serial.println("Initialise the Bluefruit nRF52 module");
   Bluefruit.begin();
   Bluefruit.setName("Bluefruit52");
@@ -70,12 +72,11 @@ void setupBLE() {
 
   // BLEService and BLECharacteristic classes
   Serial.println("Configuring the Service");
-  envservice.begin();
-	characteristic_temp0.setProperties(CHR_PROPS_READ | CHR_PROPS_NOTIFY);
-	characteristic_temp0.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
-	characteristic_temp0.setFixedLen(4); // 4byte or one int
-	characteristic_temp0.begin();
-	characteristic_temp0.notify32(0);
+  envService.begin();
+  tempChar.setProperties(CHR_PROPS_READ | CHR_PROPS_NOTIFY);
+  tempChar.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
+  tempChar.begin();
+  tempChar.notify8(DISCONNECTED);
 
   // Setup the advertising packet(s)
   Serial.println("Setting up the advertising payload(s)");
@@ -84,7 +85,7 @@ void setupBLE() {
   Bluefruit.Advertising.addTxPower();
 
   // Include HTM Service UUID
-  Bluefruit.Advertising.addService(envservice);
+  Bluefruit.Advertising.addService(envService);
 
   // Include Name
   Bluefruit.Advertising.addName();
@@ -101,37 +102,39 @@ void setupBLE() {
   Bluefruit.Advertising.restartOnDisconnect(true);
   Bluefruit.Advertising.setInterval(32, 244);    // in unit of 0.625 ms
   Bluefruit.Advertising.setFastTimeout(30);      // number of seconds in fast mode
-	Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
+  Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
 
   Serial.println("Ready Player One!!!");
-	Serial.println("\nAdvertising");
+  Serial.println("\nAdvertising");
 }
 
 void setup() {
   Serial.begin(BAUDRATE);
 
   setupADC();
-	setupBLE();
+  setupBLE();
 }
 
 void loop() {
-	digitalToggle(LED_RED);
+  digitalToggle(LED_RED);
 
   if ( Bluefruit.connected() ) {
-		int probeValue = analogRead(A1);
+    int probeValue = analogRead(A1);
 
-		if (probeValue != 0) {
-			int temp = tempNTCB(probeValue);
-			characteristic_temp0.notify32(temp*100);
-			Serial.print("BLE value updated to ");
-			Serial.print(temp - ABSZERO);
-			Serial.println("°C");
-		} else {
-			characteristic_temp0.notify32(0);
-			Serial.println("probe not connected");
-		}
-	}
+    if (probeValue != 0) {
+      int temp0 = tempNTCB(probeValue);
+      int temp1 = tempNTCB(analogRead(A0));
+      uint8_t payload[5] = {CONNECTED, highByte(temp0), lowByte(temp0), highByte(temp1), lowByte(temp1)};
+      tempChar.notify(payload, 5);
+      Serial.print("BLE value updated to ");
+      Serial.print(temp0);
+      Serial.println("°C");
+    } else {
+      tempChar.notify8(DISCONNECTED);
+      Serial.println("probe not connected");
+    }
+  }
 
   // Only send update once per second
-	delay(1000);
+  delay(1000);
 }

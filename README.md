@@ -13,6 +13,12 @@
 Some NTCs from Senstech (lets use pt1000 next time...) with a stero jack
 ![schematic](hardware/schematic.png)
 
+### Bluetooth
+
+* Environmental Sensing Service: [0x181A](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.environmental_sensing.xml)
+* Temperature Characteristic: [0x2A1F](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature_celsius.xml)
+* Payload 5 Bytes: First Byte `0x11` when probe is connected (`0x01` otherwise), int16 Temperature 1, int16 Temperature 2 (Celsius, Exponent -1)
+
 ## Frontend
 
 Let's write an awesome PWA with web bluetooth
