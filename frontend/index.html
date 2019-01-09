@@ -14,10 +14,16 @@
 		const absZero = 273.15;
 
 		function dataViewToValues({ buffer }) {
-			let settings = new DataView(buffer, 0, 1);
-			let temp0 = new DataView(buffer, 1, 2).getInt16();
-			let temp1 = new DataView(buffer, 3, 2).getInt16();
-			return {settings, temp0, temp1};
+			let connected = new DataView(buffer, 0, 1).getInt8() === 1;
+			let temp0 = null;
+			let temp1 = null;
+
+			if (connected) {
+				temp0 = new DataView(buffer, 1, 2).getInt16() / 10;
+				temp1 = new DataView(buffer, 3, 2).getInt16() / 10;
+			}
+
+			return {connected, temp0, temp1};
 		}
 
 		async function demo() {
