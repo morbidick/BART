@@ -27,11 +27,4 @@ Let's write an awesome PWA with web bluetooth
 
 * usage with chrome [activate](chrome://flags/#enable-experimental-web-platform-features) [debug](chrome://bluetooth-internals)
 * [inspiration](https://www.youtube.com/watch?v=_4nrh6mTt4E&feature=youtu.be&t=8h19m47s)
-* bluetooth terminal ([app](https://github.com/1oginov/Web-Bluetooth-Terminal), [library](https://github.com/1oginov/bluetooth-terminal))
 * [samples](https://googlechrome.github.io/samples/web-bluetooth/) ([source](https://github.com/GoogleChrome/samples/tree/gh-pages/web-bluetooth))
-* [gatt](https://www.bluetooth.com/specifications/gatt/services), [defines](https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/src/BLEUuid.h)
-  * Services
-    * [Environmental Sensing](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.environmental_sensing.xml)  0x181A
-  * Characteristics
-    * [Temperature](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=.bluetooth.characteristic.temperature.xml) 0x2A1E, 0x2A1F
-    * [Measurement Interval](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.measurement_interval.xml) 0x2A21

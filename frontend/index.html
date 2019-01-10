@@ -11,10 +11,10 @@
 
 	<script>
 		const serviceUuid = 0x181A;
-		const absZero = 273.15;
+		const charUuid = 0x2A1F;
 
 		function dataViewToValues({ buffer }) {
-			let connected = new DataView(buffer, 0, 1).getInt8() === 1;
+			let connected = new DataView(buffer, 0, 1).getInt8() === 0x01;
 			let temp0 = null;
 			let temp1 = null;
 
@@ -39,17 +39,12 @@
 				console.log('Getting Service...');
 				const service = await server.getPrimaryService(serviceUuid);
 
-				console.log('Getting Characteristics...');
-				characteristics = await service.getCharacteristics();
+				console.log('Getting Characteristic...');
+				characteristic = await service.getCharacteristic(charUuid);
 
-				let c = characteristics[0];
-				console.log(c.uuid);
-
-				console.log("Current temperature: ", dataViewToValues(await c.readValue()));
-
-				await c.startNotifications();
-				c.addEventListener('characteristicvaluechanged',(e) => {
-					console.log("changed", dataViewToValues(e.target.value));
+				await characteristic.startNotifications();
+				characteristic.addEventListener('characteristicvaluechanged',(e) => {
+					console.log("Current data: ", dataViewToValues(e.target.value));
 				});
 
 			} catch(error) {

@@ -58,7 +58,7 @@ void setupBLE() {
   // Initialise the Bluefruit module
   Serial.println("Initialise the Bluefruit nRF52 module");
   Bluefruit.begin();
-  Bluefruit.setName("Bluefruit52");
+  Bluefruit.setName("BarT 9000");
 
   // Set the connect/disconnect callback handlers
   Bluefruit.setConnectCallback(connect_callback);
