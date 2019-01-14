@@ -17,6 +17,9 @@ function dataViewToValues({ buffer }) {
 }
 
 export async function connect() {
+	if (!navigator.bluetooth)
+		throw new Error(`Browser doesn't support web Bluetooth, try the latest Chrome build`);
+
 	console.log('Requesting Bluetooth Device...');
 	const device = await navigator.bluetooth.requestDevice({
 		filters: [{services: [serviceUuid]}],

@@ -6,7 +6,10 @@ class MyApp extends LitElement {
 		return {
 			data: {
 				type: Object,
-			}
+			},
+			error: {
+				type: String,
+			},
 		}
 	}
 
@@ -15,22 +18,32 @@ class MyApp extends LitElement {
 		this.data = {};
 		bt.onData((data) => {
 			this.data = data;
+			this.clearError();
 		})
 	}
 
 	render() {
 		return html`
-			<div>${this.data.temp0} ${this.data.temp1}</div>
-			<button @click=${this.demo}>connect</button>
+			${this.error ? html`<div class="error">${this.error}</div>` : ''}
+			${this.data.connected ?
+				html`<div>${this.data.temp0} ${this.data.temp1}</div>` :
+				html`<div>Probe not connected</div>`
+			}
+			<button @click=${this.connect}>connect</button>
 		`;
 	}
 
-	async demo() {
+	async connect() {
 		try {
+			this.clearError();
 			await bt.connect();
 		} catch(error) {
-			console.log('Argh! ' + error);
+			this.error = error;
 		}
+	}
+
+	clearError() {
+		this.error = false;
 	}
 }
 
