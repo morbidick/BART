@@ -8,52 +8,9 @@
 	<title>BarT</title>
 
 	<script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-
-	<script>
-		const serviceUuid = 0x181A;
-		const charUuid = 0x2A1F;
-
-		function dataViewToValues({ buffer }) {
-			let connected = new DataView(buffer, 0, 1).getInt8() === 0x01;
-			let temp0 = null;
-			let temp1 = null;
-
-			if (connected) {
-				temp0 = new DataView(buffer, 1, 2).getInt16() / 10;
-				temp1 = new DataView(buffer, 3, 2).getInt16() / 10;
-			}
-
-			return {connected, temp0, temp1};
-		}
-
-		async function demo() {
-			try {
-				console.log('Requesting Bluetooth Device...');
-				const device = await navigator.bluetooth.requestDevice({
-					filters: [{services: [serviceUuid]}],
-				});
-
-				console.log('Connecting to GATT Server...');
-				const server = await device.gatt.connect();
-
-				console.log('Getting Service...');
-				const service = await server.getPrimaryService(serviceUuid);
-
-				console.log('Getting Characteristic...');
-				characteristic = await service.getCharacteristic(charUuid);
-
-				await characteristic.startNotifications();
-				characteristic.addEventListener('characteristicvaluechanged',(e) => {
-					console.log("Current data: ", dataViewToValues(e.target.value));
-				});
-
-			} catch(error) {
-				console.log('Argh! ' + error);
-			}
-		}
-	</script>
+	<script type="module" src="src/app.js"></script>
 </head>
 <body>
-	<button onclick="demo()">Launch</button>
+	<my-app></my-app>
 </body>
 </html>

@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^2.0.2",
-    "@polymer/lit-element": "^0.5.2"
+    "lit-element": "^2.0.0-rc.2",
+    "npm": "^6.5.0"
   },
   "devDependencies": {
     "polyserve": "^0.27.0"
