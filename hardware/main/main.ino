@@ -21,6 +21,7 @@
 
 BLEService        envService = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
 BLECharacteristic tempChar = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT);
+BLECharacteristic battChar = BLECharacteristic(0x2A1E);
 
 BLEDis bledis; // DIS (Device Information Service) helper class instance
 BLEBas blebas; // BAS (Battery Service) helper class instance
@@ -109,7 +110,10 @@ void setupBLE() {
   tempChar.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
   tempChar.begin();
   tempChar.notify8(DISCONNECTED);
-
+  battChar.setProperties(CHR_PROPS_READ | CHR_PROPS_NOTIFY);
+  battChar.setPermission(SECMODE_OPEN, SECMODE_NO_ACCESS);
+  battChar.begin();
+  battChar.notify8(0);
 
   // Start the BLE Battery Service and set it to 100%
   Serial.println("Configuring the Battery Service");
@@ -160,6 +164,7 @@ void loop() {
 
   uint8_t battery = batteryCharge();
   blebas.notify(battery);
+  battChar.notify8(battery);
   Serial.print("Battery charge: ");
   Serial.print(battery);
   Serial.println("%");

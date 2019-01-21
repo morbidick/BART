@@ -7,6 +7,9 @@ class MyApp extends LitElement {
 			data: {
 				type: Object,
 			},
+			battery: {
+				type: Number,
+			},
 			error: {
 				type: String,
 			},
@@ -18,7 +21,6 @@ class MyApp extends LitElement {
 		this.data = {};
 		bt.onTemperature((data) => {
 			this.data = data;
-			this.clearError();
 		})
 		bt.onBattery((percentage) => {
 			this.battery = percentage;
@@ -29,8 +31,9 @@ class MyApp extends LitElement {
 	render() {
 		return html`
 			${this.error ? html`<div class="error">${this.error}</div>` : ''}
+			<div>Battery: ${this.battery}%</div>
 			${this.data.connected ?
-				html`<div>${this.data.temp0} ${this.data.temp1}</div>` :
+				html`<div>${this.data.temp0}°C ${this.data.temp1}°C</div>` :
 				html`<div>Probe not connected</div>`
 			}
 			<button @click=${this.connect}>connect</button>

@@ -46,17 +46,15 @@ export async function connect() {
 		}
 	});
 
-	console.log('Getting Battery Service...');
-	const battService = await server.getPrimaryService(battServiceUuid);
-
+	// cant get it correctly working so working around it for now
 	console.log('Getting Battery Characteristic...');
-	const battCharacteristic = await battService.getCharacteristic(battCharUuid);
+	const battCharacteristic = await service.getCharacteristic(0x2A1E);
 
 	console.log('Subscribe Battery Characteristic...');
 	await battCharacteristic.startNotifications();
 	battCharacteristic.addEventListener('characteristicvaluechanged',(e) => {
 		if(typeof onBattCallback == 'function') {
-			onBattCallback(e.target.value);
+			onBattCallback(e.target.value.getInt8());
 		}
 	});
 }
