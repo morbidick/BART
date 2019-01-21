@@ -2,13 +2,16 @@
 #include <bluefruit.h>
 
 #define BAUDRATE 115200
-#define MAXANALOGREAD 1023.0 // 10-bit ADC
+#define MAXANALOGREAD 4095.0 // 12-bit ADC
 #define MV_PER_LSB (3300.0F/(MAXANALOGREAD + 1)) // 3.3V input range
 #define ABSZERO 273.15
 #define T0 (25+ABSZERO) // nominal temperatur NTC-Sensor in Kelvin
 #define R0 1000000 // nominal resistance NTC-Sensor in Ohm
 #define B 4608  // material constant B
 #define RV 68000 // series resistor in Ohm
+
+#define VBAT_PIN (A7)
+#define VBAT_DIVIDER_COMP (1.403F) // Compensation factor for the VBAT divider, 2M + 0.806M voltage divider on VBAT = (2M / (0.806M + 2M))
 
 #define UUID16_SVC_ENVIRONMENTAL_SENSING   0x181A
 #define UUID16_CHR_TEMPERATURE_MEASUREMENT 0x2A1F
@@ -20,11 +23,13 @@ BLEService        envService = BLEService(UUID16_SVC_ENVIRONMENTAL_SENSING);
 BLECharacteristic tempChar = BLECharacteristic(UUID16_CHR_TEMPERATURE_MEASUREMENT);
 
 BLEDis bledis; // DIS (Device Information Service) helper class instance
+BLEBas blebas; // BAS (Battery Service) helper class instance
+
 
 // https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/nrf52-adc
 void setupADC() {
   analogReference(AR_VDD4);
-  analogReadResolution(10);
+  analogReadResolution(12);
 
   // Let the ADC settle
   delay(1);
@@ -36,6 +41,33 @@ float tempNTCB(int adcvalue) {
   float RN = RV*VA_VB / (1-VA_VB); // current ressistance NTC
   float kelvin = T0 * B / (B + T0 * log(RN / R0));
   return (kelvin - ABSZERO)*10.00;
+}
+
+// https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/examples/Hardware/adc_vbat/adc_vbat.ino
+uint8_t batteryCharge() {
+  uint8_t battery_level;
+  int raw = analogRead(VBAT_PIN);
+
+  // Convert the raw value to compensated mv, taking the resistor-
+  // divider into account (providing the actual LIPO voltage)
+  // VBAT voltage divider is 2M + 0.806M, which needs to be added back
+  float mvolts = (float)raw * MV_PER_LSB * VBAT_DIVIDER_COMP;
+
+  if (mvolts >= 4000) {
+    battery_level = 100;
+  } else if (mvolts > 3900) {
+    battery_level = 100 - ((4000 - mvolts) * 58) / 100;
+  } else if (mvolts > 3740) {
+    battery_level = 42 - ((3900 - mvolts) * 24) / 160;
+  } else if (mvolts > 3440) {
+    battery_level = 18 - ((3740 - mvolts) * 12) / 300;
+  } else if (mvolts > 2100) {
+    battery_level = 6 - ((3440 - mvolts) * 6) / 340;
+  } else {
+    battery_level = 0;
+  }
+
+  return battery_level;
 }
 
 void connect_callback(uint16_t conn_handle) {
@@ -78,6 +110,12 @@ void setupBLE() {
   tempChar.begin();
   tempChar.notify8(DISCONNECTED);
 
+
+  // Start the BLE Battery Service and set it to 100%
+  Serial.println("Configuring the Battery Service");
+  blebas.begin();
+  blebas.notify(100);
+
   // Setup the advertising packet(s)
   Serial.println("Setting up the advertising payload(s)");
     // Advertising packet
@@ -115,8 +153,16 @@ void setup() {
   setupBLE();
 }
 
+
+// switch to timers https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/examples/Hardware/software_timer/software_timer.ino
 void loop() {
   digitalToggle(LED_RED);
+
+  uint8_t battery = batteryCharge();
+  blebas.notify(battery);
+  Serial.print("Battery charge: ");
+  Serial.print(battery);
+  Serial.println("%");
 
   if ( Bluefruit.connected() ) {
     int probeValue = analogRead(A1);

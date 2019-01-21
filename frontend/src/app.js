@@ -16,9 +16,13 @@ class MyApp extends LitElement {
 	constructor() {
 		super();
 		this.data = {};
-		bt.onData((data) => {
+		bt.onTemperature((data) => {
 			this.data = data;
 			this.clearError();
+		})
+		bt.onBattery((percentage) => {
+			this.battery = percentage;
+			console.log("got new battery state", percentage);
 		})
 	}
 
@@ -37,8 +41,8 @@ class MyApp extends LitElement {
 		try {
 			this.clearError();
 			await bt.connect();
-		} catch(error) {
-			this.error = error;
+		} catch({message}) {
+			this.error = message;
 		}
 	}
 

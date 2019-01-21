@@ -1,7 +1,11 @@
-const serviceUuid = 0x181A;
-const charUuid = 0x2A1F;
+const tempServiceUuid = 0x181A;
+const tempCharUuid = 0x2A1F;
 
-let onDataCallback;
+const battServiceUuid = 0x180F;
+const battCharUuid = 0x2A19;
+
+let onTempCallback;
+let onBattCallback;
 
 function dataViewToValues({ buffer }) {
     let connected = new DataView(buffer, 0, 1).getInt8() === 0x01;
@@ -22,29 +26,45 @@ export async function connect() {
 
 	console.log('Requesting Bluetooth Device...');
 	const device = await navigator.bluetooth.requestDevice({
-		filters: [{services: [serviceUuid]}],
+		filters: [{services: [tempServiceUuid, battServiceUuid]}],
 	});
 
 	console.log('Connecting to GATT Server...');
 	const server = await device.gatt.connect();
 
-	console.log('Getting Service...');
-	const service = await server.getPrimaryService(serviceUuid);
+	console.log('Getting Temperature Service...');
+	const service = await server.getPrimaryService(tempServiceUuid);
 
-	console.log('Getting Characteristic...');
-	const characteristic = await service.getCharacteristic(charUuid);
+	console.log('Getting Temperature Characteristic...');
+	const characteristic = await service.getCharacteristic(tempCharUuid);
 
+	console.log('Subscribe Temperature Characteristic...');
 	await characteristic.startNotifications();
 	characteristic.addEventListener('characteristicvaluechanged',(e) => {
-		if(typeof onDataCallback == 'function') {
-			onDataCallback(dataViewToValues(e.target.value));
+		if(typeof onTempCallback == 'function') {
+			onTempCallback(dataViewToValues(e.target.value));
 		}
 	});
 
-	return characteristic;
+	console.log('Getting Battery Service...');
+	const battService = await server.getPrimaryService(battServiceUuid);
+
+	console.log('Getting Battery Characteristic...');
+	const battCharacteristic = await battService.getCharacteristic(battCharUuid);
+
+	console.log('Subscribe Battery Characteristic...');
+	await battCharacteristic.startNotifications();
+	battCharacteristic.addEventListener('characteristicvaluechanged',(e) => {
+		if(typeof onBattCallback == 'function') {
+			onBattCallback(e.target.value);
+		}
+	});
 }
 
-export function onData(callback) {
-	onDataCallback = callback;
+export function onTemperature(callback) {
+	onTempCallback = callback;
 }
 
+export function onBattery(callback) {
+	onBattCallback = callback;
+}
