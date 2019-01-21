@@ -26,6 +26,10 @@ BLECharacteristic battChar = BLECharacteristic(0x2A1E);
 BLEDis bledis; // DIS (Device Information Service) helper class instance
 BLEBas blebas; // BAS (Battery Service) helper class instance
 
+// Software timer https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/examples/Hardware/software_timer/software_timer.ino
+SoftwareTimer blinkTimer;
+SoftwareTimer tempTimer;
+SoftwareTimer battTimer;
 
 // https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/nrf52-adc
 void setupADC() {
@@ -155,19 +159,32 @@ void setup() {
 
   setupADC();
   setupBLE();
+
+  blinkTimer.begin(1000, blink_timer_callback);
+  blinkTimer.start();
+
+  tempTimer.begin(1000, temp_timer_callback);
+  tempTimer.start();
+
+  battTimer.begin(10000, batt_timer_callback);
+  battTimer.start();
 }
 
 
-// switch to timers https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/examples/Hardware/software_timer/software_timer.ino
 void loop() {
-  digitalToggle(LED_RED);
+  // everything else is done via Timers
+}
 
-  uint8_t battery = batteryCharge();
-  blebas.notify(battery);
-  battChar.notify8(battery);
-  Serial.print("Battery charge: ");
-  Serial.print(battery);
-  Serial.println("%");
+void blink_timer_callback(TimerHandle_t xTimerID)
+{
+  (void) xTimerID;
+
+  digitalToggle(LED_RED);
+}
+
+void temp_timer_callback(TimerHandle_t xTimerID)
+{
+  (void) xTimerID;
 
   if ( Bluefruit.connected() ) {
     int probeValue = analogRead(A1);
@@ -185,7 +202,16 @@ void loop() {
       Serial.println("probe not connected");
     }
   }
+}
 
-  // Only send update once per second
-  delay(1000);
+void batt_timer_callback(TimerHandle_t xTimerID)
+{
+  (void) xTimerID;
+
+  uint8_t battery = batteryCharge();
+  blebas.notify(battery);
+  battChar.notify8(battery);
+  Serial.print("Battery charge: ");
+  Serial.print(battery);
+  Serial.println("%");
 }
